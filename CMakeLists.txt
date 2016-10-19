@@ -38,7 +38,9 @@ set(SOURCE_FILES
         src/experiment/ConfigurationExecutor.hpp
         src/MetronomeException.hpp
         src/utils/File.hpp
-        src/experiment/termination/ExpansionTerminationChecker.hpp src/utils/Statistic.hpp src/MemoryConfiguration.hpp src/utils/LinearMemoryPool.hpp src/algorithms/FRts.hpp)
+        src/experiment/termination/ExpansionTerminationChecker.hpp src/utils/Statistic.hpp src/MemoryConfiguration.hpp src/utils/StaticVector.hpp src/algorithms/FRts.hpp)
+
+file(GLOB_RECURSE OLD_SOURCE_FILES ${PROJECT_SOURCE_DIR}/src/isolation/*.cc)
 
 set(TEST_FILES
         test/test.cpp
@@ -49,10 +51,10 @@ set(TEST_FILES
         src/utils/TimeMeasurement.hpp
         test/experiment/TimeTerminationCheckerTest.hpp test/domains/TrafficTest.hpp)
 
-add_executable(Metronome ${SOURCE_FILES})
+add_executable(Metronome ${SOURCE_FILES} ${OLD_SOURCE_FILES})
 add_executable(MetronomeTest ${TEST_FILES})
 
-find_package(Boost 1.55.0 COMPONENTS thread system REQUIRED)
+find_package(Boost 1.55.0 COMPONENTS system REQUIRED)
 find_package(Cairo)
 find_package(X11)
 
@@ -66,7 +68,7 @@ include_directories(
 )
 
 if (CAIRO_FOUND AND X11_FOUND)
-    add_definitions(-DGRAPHICS)
+#    add_definitions(-DGRAPHICS)
 endif()
 
 target_link_libraries(Metronome ${Boost_LIBRARIES} ${CAIRO_LIBRARIES} ${X11_LIBRARIES})

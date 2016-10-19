@@ -2,15 +2,15 @@
 #include <cairo.h>
 #endif
 #include "easylogging++.h"
-#include "rapidjson/document.h"
 #include "experiment/ConfigurationExecutor.hpp"
+#include "rapidjson/document.h"
 #include "rapidjson/filereadstream.h"
 #include "rapidjson/istreamwrapper.h"
 #include "utils/File.hpp"
 
-//#include <iostream>
 #include <cstdio>
 #include <utils/Statistic.hpp>
+#include "isolation/gridnav/main_gridnav.hpp"
 
 #ifdef GRAPHICS
 #include <X11/Xlib.h>
@@ -37,25 +37,28 @@ cairo_surface_t* cairo_create_x11_surface(int x, int y) {
     if ((dsp = XOpenDisplay(NULL)) == NULL)
         exit(1);
     screen = DefaultScreen(dsp);
-    da = XCreateSimpleWindow(dsp, DefaultRootWindow(dsp),
-                             0, 0, x, y, 0, 0, 0);
+    da = XCreateSimpleWindow(dsp, DefaultRootWindow(dsp), 0, 0, x, y, 0, 0, 0);
     XSelectInput(dsp, da, ButtonPressMask | KeyPressMask);
     XMapWindow(dsp, da);
 
-    sfc = cairo_xlib_surface_create(dsp, da,
-                                    DefaultVisual(dsp, screen), x, y);
+    sfc = cairo_xlib_surface_create(dsp, da, DefaultVisual(dsp, screen), x, y);
     cairo_xlib_surface_set_size(sfc, x, y);
 
     return sfc;
 }
 #endif
 
-int main(int argc, char** argv) {
+int main(int argc, const char* argv[]) {
     using namespace metronome;
     printSplashScreen();
 
+    if (argc > 3) {
+        xmain(argc, argv, true);
+        return 0;
+    }
+
 #ifdef GRAPHICS
-    cairo_create_x11_surface(800,800);
+    cairo_create_x11_surface(800, 800);
 #endif
 
     Statistic::initialize();
@@ -95,17 +98,17 @@ int main(int argc, char** argv) {
         document.ParseStream(streamWrapper);
     }
 
-    //        getchar(); // Wait for keypress
+//        getchar(); // Wait for keypress
 
-    const Result result = ConfigurationExecutor::executeConfiguration(Configuration(std::move(document)), resourceDir);
+    const auto result = ConfigurationExecutor::executeConfiguration(Configuration(std::move(document)), resourceDir);
 
     LOG(INFO) << "Execution completed in " << result.planningTime / 1000000 << "ms";
     LOG(INFO) << "Path length: " << result.pathLength;
     LOG(INFO) << "Nodes :: expanded: " << result.expandedNodes << " generated: " << result.generatedNodes;
 
-    //                for (auto action : result.actions) {
-    //                    LOG(INFO) << action;
-    //                }
+                for (auto action : result.actions) {
+                    LOG(INFO) << action;
+                }
 
     std::cout << "\n\nResult:" << std::endl;
     std::cout << result.getJsonString();

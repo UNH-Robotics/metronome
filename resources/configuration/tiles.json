@@ -1,9 +1,9 @@
 {
   "timeLimit": 150000000000,
-  "domainPath": "/input/tiles/korf/4/all/3",
+  "domainPath": "/input/tiles/korf/4/all/1",
   "domainInstanceName": "Manual test instance",
-  "actionDuration": 100000000,
+  "actionDuration": 1000,
   "domainName": "SLIDING_TILE_PUZZLE",
-  "terminationType": "time",
-  "algorithmName": "LSS_LRTA_STAR"
+  "terminationType": "EXPANSION",
+  "algorithmName": "MO_RTS"
 }

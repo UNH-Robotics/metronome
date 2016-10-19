@@ -1,9 +1,10 @@
 {
   "timeLimit": 150000000000,
-  "domainPath": "input/vacuum/bence/decisions.vw",
+  "domainPath": "input/vacuum/dylan/slalom.vw",
   "domainInstanceName": "Manual test instance",
-  "actionDuration": 100,
+  "actionDuration": 10,
   "domainName": "GRID_WORLD",
   "terminationType": "EXPANSION",
-  "algorithmName": "A_STAR"
+  "algorithmName": "MO_RTS",
+  "lookaheadType": "STATIC"
 }
