@@ -1,5 +1,6 @@
 #pragma once
 #include <vector>
+#include <iostream>
 #include "../utils/geom2d.hpp"
 #include "../utils/pool.hpp"
 #include "lsslrtastar2.hpp"
@@ -574,11 +575,11 @@ private:
             ++i;
             delay_beta += p->expCount - p->genCount;
         }
-        delay_beta += 1 + expCount +
-            (beta->fhat - alpha->fhat) /
-                (std::abs(alpha->fhat - lssClosed.find(n->state)->fhat) / alpha->genCount) -
-            beta->genCount;
-//        delay_beta += 1 + expCount - beta->genCount;
+//        delay_beta += 1 + expCount +
+//            (beta->fhat - alpha->fhat) /
+//                (std::abs(alpha->fhat - lssClosed.find(n->state)->fhat) / alpha->genCount) -
+//            beta->genCount;
+        delay_beta += 1 + expCount - beta->genCount;
 
         delay_beta /= i;
 
@@ -622,6 +623,7 @@ private:
                     ((end - start) / 100.0);
         }
 
+        std::cout << benefit << std::endl;
         return benefit;
     }
 

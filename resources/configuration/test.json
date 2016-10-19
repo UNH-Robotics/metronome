@@ -1,6 +1,6 @@
 {
   "timeLimit": 150000000000,
-  "domainPath": "input/vacuum/dylan/slalom.vw",
+  "domainPath": "input/vacuum/dylan/cups.vw",
   "domainInstanceName": "Manual test instance",
   "actionDuration": 10,
   "domainName": "GRID_WORLD",
