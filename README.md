@@ -37,3 +37,7 @@ Example configuration:
 "domainName" : "GRID_WORLD",
 "terminationType" : "time",
 "algorithmName" : "A_STAR"
+
+To run the old version of IMR:
+
+ltl-cbe-ident-hybrid -lookahead 1 -lvl <path-to-isolation>/i2 -printsolution
