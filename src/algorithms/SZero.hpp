@@ -37,7 +37,7 @@ public:
             // Goal is already reached
             return std::vector<ActionBundle>();
         }
-        
+
         // Learning phase
         if (openList.isNotEmpty()) {
             learn(terminationChecker);
@@ -102,6 +102,8 @@ private:
         Action topLevelAction;
         /** The number of parents we haven't yet explored */
         int unexploredParents = 0;
+        /** nodes that have preceeded this one*/
+        std::vector<Node*> preceeders;
     };
 
     class Edge {
@@ -117,9 +119,19 @@ private:
     void sweepBackSafety() {
         for (auto it = safeNodes.begin(); it != safeNodes.end(); ++it) {
             Node* currentSafeNode = *it;
-            while (currentSafeNode->parent != nullptr) {
-                Node* newFoundSafeNode = currentSafeNode->parent;
-                safeNodes.push_back(newFoundSafeNode);
+            if (currentSafeNode != nullptr) {
+                while (currentSafeNode->parent != nullptr) {
+                    Node* newFoundSafeNode = currentSafeNode->parent;
+                    safeNodes.push_back(newFoundSafeNode);
+                }
+                for (auto it = currentSafeNode->preceeders.begin(); it != currentSafeNode->preceeders.end(); ++it) {
+                    while ((*it)->parent != nullptr) {
+                        Node* newFoundSafeNode = (*it);
+                        safeNodes.push_back(newFoundSafeNode);
+                    }
+                }
+            } else {
+                break;
             }
         }
     }
@@ -165,7 +177,7 @@ private:
         }
     }
 
-    Node* explore(const State& startState, const TerminationChecker& terminationChecker) {
+    Node* explore(const State& startState, TerminationChecker& terminationChecker) {
         ++iterationCounter;
         clearOpenList();
         openList.reorder(fComparator);
@@ -190,27 +202,37 @@ private:
         checkSafeNode(currentNode);
 
         while (!terminationChecker.reachedTermination() && !domain.isGoal(currentNode->state)) {
-            if (domain.safetyPredicate(currentNode->state)) { // try to find nodes which lead to safety
-                currentNode = popOpenList();
-                expandNode(currentNode);
+            //            if (domain.safetyPredicate(currentNode->state)) { // try to find nodes which lead to safety
+            //                currentNode = popOpenList();
+            //                terminationChecker.notifyExpansion();
+            //                expandNode(currentNode);
+            //            }
+            //
+            //            if (currentNode == startNode) { // if we can't just do LSS-LRTA*
+            //                while (!terminationChecker.reachedTermination() && !domain.isGoal(currentNode->state)) {
+            //                    currentNode = popOpenList();
+            //                    terminationChecker.notifyExpansion();
+            //                    expandNode(currentNode);
+            //                }
+            //            }
+            Node* const currentNode = popOpenList();
+            if (domain.isGoal(currentNode->state)) {
+                return currentNode;
             }
+
+            terminationChecker.notifyExpansion();
+            expandNode(currentNode);
         }
 
-        if (currentNode == startNode) { // if we can't just do LSS-LRTA*
-            while (!terminationChecker.reachedTermination() && !domain.isGoal(currentNode->state)) {
-                currentNode = popOpenList();
-                expandNode(currentNode);
-            }
-        }
-
-        return currentNode; // todo this might be one step behind the best
+        return openList.top();
     }
 
     void checkSafeNode(Node* candidateNode) {
-        if (domain.safetyPredicate(candidateNode->state)) {
-            safeNodes.push_back(candidateNode);
-            if (candidateNode->parent != nullptr) {
-                candidateNode->topLevelAction = candidateNode->parent->topLevelAction;
+        if (domain.safetyPredicate(candidateNode->state)) { // if the node is safe
+            if (candidateNode->parent->parent == nullptr && false) {
+                //                safeTopLevelActionNodes.push_back(candidateNode);
+            } else {
+                safeNodes.push_back(candidateNode); // put it with the other safe nodes
             }
         }
     }
@@ -227,10 +249,18 @@ private:
                 successorNode = createNode(sourceNode, successor);
                 if (successorNode->parent->parent == nullptr) {
                     // its the root node [start node] mark top level actions
-                    successorNode->topLevelAction = successorNode->action;
-                    safeTopLevelActionNodes.push_back(successorNode);
+                    //                    successorNode->topLevelAction = successorNode->action;
+                    //                    safeTopLevelActionNodes.push_back(successorNode);
                 }
                 checkSafeNode(successorNode);
+                if (successorNode->parent != nullptr) { // as long as the parent isn't null
+                    if (successorNode->parent->parent == nullptr) { // if we're marking TLAs
+                        successorNode->topLevelAction = successorNode->action; // give them their action
+                    } else { // otherwise we're marking non TLAs
+                        successorNode->topLevelAction =
+                                successorNode->parent->topLevelAction; // set the node's TLA to its parent's
+                    }
+                }
             }
 
             // If the node is outdated it should be updated.
@@ -246,9 +276,9 @@ private:
             successorNode->predecessors.emplace_back(sourceNode, successor.action, successor.actionCost);
 
             // Skip if we got back to the parent
-            //            if (sourceNode->parent != nullptr && successorState == sourceNode->parent->state) {
-            //                continue;
-            //            }
+            if (sourceNode->parent != nullptr && successorState == sourceNode->parent->state) {
+                continue;
+            }
 
             // only generate those state that are not visited yet or whose cost value are lower than this path
             Cost successorGValueFromCurrent{sourceNode->g + successor.actionCost};
@@ -268,12 +298,14 @@ private:
 
     Node* createNode(Node* sourceNode, SuccessorBundle<Domain> successor) {
         Planner::incrementGeneratedNodeCount();
-        return nodePool->construct(Node{sourceNode,
+        Node* ret = nodePool->construct(Node{sourceNode,
                 successor.state,
                 successor.action,
                 domain.COST_MAX,
                 domain.heuristic(successor.state),
                 true});
+        ret->preceeders.push_back(sourceNode); // keep track of all nodes that have generated this one
+        return ret;
     }
 
     void clearOpenList() {
@@ -298,23 +330,31 @@ private:
 
     std::vector<ActionBundle> extractPath(const Node* targetNode, const Node* sourceNode) const {
         if (targetNode == sourceNode) {
-            //                        LOG(INFO) << "We didn't move:" << sourceNode->toString();
+//            LOG(INFO) << "We didn't move:" << sourceNode->toString() << std::endl;
             return std::vector<ActionBundle>();
         }
 
         std::vector<ActionBundle> actionBundles;
         auto currentNode = targetNode;
+
         // commit to one action
-        actionBundles.emplace_back(currentNode->topLevelAction,currentNode->g - currentNode->parent->g);
-
-//        while (currentNode != sourceNode) {
-            // The g difference of the child and the parent gives the action cost from the parent
+//        LOG(INFO) << currentNode->toString() << std::endl;
+        if (currentNode->parent->parent == nullptr) {
+//            LOG(INFO) << "root" << std::endl;
+        }
+//        LOG(INFO) << currentNode->topLevelAction << std::endl;
+        while (currentNode->parent->parent != nullptr) {
+            //         The g difference of the child and the parent gives the action cost from the parent
+            //  keep going back until we're one away from the root AKA at a TLA
 //            actionBundles.emplace_back(currentNode->action, currentNode->g - currentNode->parent->g);
-//            currentNode = currentNode->parent;
-//        }
+            currentNode = currentNode->parent;
+        }
 
+        if (safeTopLevelActionNodes[0] == nullptr) {
+            actionBundles.emplace_back(currentNode->action, currentNode->g - currentNode->parent->g);
+        } else {
+        }
         std::reverse(actionBundles.begin(), actionBundles.end());
-
 
         return actionBundles;
     }

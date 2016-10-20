@@ -5,6 +5,8 @@ project(Metronome)
 # locating required libraries for addons, etc. Store them in modules/
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${PROJECT_SOURCE_DIR}/modules/")
 
+set(CMAKE_EXE_LINKER_FLAGS "-static")
+
 #set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++14 -Wall -pedantic -Wextra")
 set(CXX clang++)
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++14")
@@ -38,7 +40,10 @@ set(SOURCE_FILES
         src/experiment/ConfigurationExecutor.hpp
         src/MetronomeException.hpp
         src/utils/File.hpp
-        src/experiment/termination/ExpansionTerminationChecker.hpp src/utils/Statistic.hpp src/MemoryConfiguration.hpp src/utils/StaticVector.hpp src/algorithms/FRts.hpp)
+        src/experiment/termination/ExpansionTerminationChecker.hpp
+        src/utils/Statistic.hpp src/MemoryConfiguration.hpp
+        src/utils/StaticVector.hpp
+        src/algorithms/FRts.hpp)
 
 file(GLOB_RECURSE OLD_SOURCE_FILES ${PROJECT_SOURCE_DIR}/src/isolation/*.cc)
 

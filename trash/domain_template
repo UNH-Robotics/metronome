@@ -1,0 +1,142 @@
+// Here is the class template for creating a new domain.
+// Search algorithms are templatized on domains that
+// must look like this.
+
+#include "../utils/utils.hpp"
+#include <cstdio>
+
+struct <DOMAIN> {
+
+	// Probably double, float, or int.  Must be convertable
+	// to a double, must be constructable from an int.
+	// Cost(-1) is reserved for infinite cost.  See gridnav
+	// for an example of a kind of sophistocated cost type.
+	// 
+	// Some searches will use a special (faster)
+	// closed list if the costs are ints.
+	typedef <COST> Cost;
+
+	// The type of an operator which can be
+	// applied to a state.  This is usually just an
+	// integer but it may be some more complex
+	// class.  Searches assume that operator==
+	// is defined on the Oper class.
+	typedef <OPER> Oper;
+	static const <OPER> Nop = …;
+
+	<DOMAIN>(FILE*);
+
+	struct State {	…	};
+
+	// Memory-intensive algs such as A* which store
+	// PackedStates instead of States.  Each time operations	
+	// are needed, the state is unpacked and operated
+	// upon.
+	//
+	// If your state is as packed as it will get then you
+	// can simply 'typedef State PackedState'
+	struct PackedState {
+		…
+
+		// Functions for putting a packed state
+		// into a hash table.
+		bool operator==(const PackedState &) const {
+			return false;
+		}
+	};
+
+	unsigned long hash(const PackedState&) const {
+		return -1;
+	}
+
+	// Get the initial state.
+	State initialstate(void) const;
+
+	// Get the heuristic.
+	Cost h(const State &s) const {
+		fatal("Unimplemented");
+		return 0.0;
+	}
+
+	// Get a distance estimate.
+	Cost d(const State &s) const {
+		fatal("Unimplemented");
+		return 0.0;
+	}
+
+	// Is the given state a goal state?
+	bool isgoal(const State &s) const {
+		fatal("Unimplemented");
+		return false;
+	}
+
+	// Operators implements an vector of the applicable
+	// operators for a given state.
+	struct Operators {
+		Operators(const DOMAIN&, const State&);
+
+		// size returns the number of applicable operatiors.
+		unsigned int size() const {
+			fatal("Unimplemented");
+			return 0;
+		}
+
+		// operator[] returns a specific operator.
+		Oper operator[] (unsigned int) const { 
+			fatal("Unimplemented");
+			return 0;
+		}
+	};
+
+	struct Edge {
+		Cost cost;
+		Oper revop;
+		Cost revcost;
+
+		// The state field may or may not be a reference.
+		// The reference variant is used in domains that
+		// do in-place modification and the non-reference
+		// variant is used in domains that do out-of-place
+		// modification.
+		State state;
+		// State &state
+
+		// Applys the operator to thet state.  Some domains
+		// may modify the input state in this constructor.
+		// Because of this, a search algorithm may not
+		// use the state passed to this constructor until
+		// after the Edge's destructor has been called!
+		Edge(const DOMAIN&, const State&, Oper) { }
+
+		// The destructor is expected to undo any changes
+		// that it may have made to the input state in
+		// the constructor.  If a domain uses out-of-place
+		// modification then the destructor may not be
+		// required.
+		~Edge(void) { }
+	};
+
+	// Pack the state into the destination packed state.
+	// If PackedState is the same type as State then this
+	// should at least copy.
+	void pack(PackedState &dst, State &src) const {
+		fatal("Unimplemented");
+	}
+
+	// Unpack the state and return a reference to the
+	// resulting unpacked state.  If PackedState and
+	// State are the same type then the packed state
+	// can just be immediately returned and used
+	// so that there is no need to copy.
+	State &unpack(State &buf, PackedState &pkd) const {
+		fatal("Unimplemented");
+		return buf;
+	}
+
+	// Print the state.
+	void dumpstate(FILE *out, const State &s) const {
+		fatal("Unimplemented");
+	}
+
+	Cost pathcost(const std::vector<State>&, const std::vector<Oper>&);
+};

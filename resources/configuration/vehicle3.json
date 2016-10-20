@@ -4,6 +4,6 @@
   "domainInstanceName": "Manual test instance",
   "actionDuration": 6000000,
   "domainName": "TRAFFIC",
-  "terminationType": "time",
+  "terminationType": "TIME",
   "algorithmName": "A_STAR"
 }

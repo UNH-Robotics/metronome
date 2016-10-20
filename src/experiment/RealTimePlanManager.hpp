@@ -60,6 +60,7 @@ public:
                         throw MetronomeException("Invalid action. Partial plan is corrupt.");
                     }
                     currentState = nextState.get();
+//                    LOG(INFO) << actionBundle.action << std::endl;
                     actions.emplace_back(actionBundle.action);
                     timeBound += actionBundle.actionDuration;
                 }

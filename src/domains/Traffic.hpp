@@ -304,29 +304,44 @@ public:
     boost::optional<State> transition(const State& state, const Action& action) const {
         std::vector<metronome::Traffic::Obstacle> obstacleMap = moveObstacles(state);
 
+
         if (action.toChar() == 'N') {
             State newState = State(state.getX(), state.getY() - 1, obstacleMap);
             if (isLegalLocation(newState)) {
+
+//                visualize(std::cout, state, action);
                 return boost::make_optional(newState);
             }
         } else if (action.toChar() == 'E') {
             State newState = State(state.getX() + 1, state.getY(), obstacleMap);
             if (isLegalLocation(newState)) {
+
+
+//                visualize(std::cout, state, action);
                 return boost::make_optional(newState);
             }
         } else if (action.toChar() == 'S') {
             State newState = State(state.getX(), state.getY() + 1, obstacleMap);
             if (isLegalLocation(newState)) {
+
+
+//                visualize(std::cout, state, action);
                 return boost::make_optional(newState);
             }
         } else if (action.toChar() == 'W') {
             State newState = State(state.getX() - 1, state.getY(), obstacleMap);
             if (isLegalLocation(newState)) {
+
+
+//                visualize(std::cout, state, action);
                 return boost::make_optional(newState);
             }
         } else if (action.toChar() == '0' /*&& bunkers[state.getX()][state.getY()]*/) {
             State newState = State(state.getX(), state.getY(), obstacleMap);
             if (isLegalLocation(newState)) {
+
+
+//                visualize(std::cout, state, action);
                 return boost::make_optional(newState);
             }
         }

@@ -4,6 +4,6 @@
   "domainInstanceName": "Manual test instance",
   "actionDuration": 6000000,
   "domainName": "TRAFFIC",
-  "terminationType": "TIME",
-  "algorithmName": "LSS_LRTA_STAR"
+  "terminationType": "EXPANSION",
+  "algorithmName": "S_ZERO"
 }

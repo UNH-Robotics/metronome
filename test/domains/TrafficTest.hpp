@@ -1,3 +1,4 @@
+#include <vector>
 #include "catch.hpp"
 #include "domains/Traffic.hpp"
 #include "easylogging++.h"
@@ -19,6 +20,22 @@ const std::string resourceDir = "/home/aifs2/doylew/Public/metronome/resources";
 metronome::Traffic testGrid =
         metronome::ConfigurationExecutor::extractDomain<metronome::Traffic>(metronome::Configuration(json),
                 resourceDir);
+
+const char* json2 = "{\"timeLimit\" : 150000000000,\n"
+                    "\"domainPath\" : "
+                    "\"/input/vacuum/slalom.vw\",\n"
+                    "\"domainInstanceName\" : \"Manual test instance\",\n"
+                    "\"actionDuration\" : 6000000,\n"
+                    "\"domainName\" : \"GRID_WORLD\",\n"
+                    "\"terminationType\" : \"time\",\n"
+                    "\"list\" : [1, 2],\n"
+                    "\"objects\" : {\"a\": [], \"b\": {}},\n"
+                    "\"algorithmName\" : \"A_STAR\"}";
+
+const std::string resourceDir2 = "/home/aifs2/doylew/Public/metronome/resources";
+metronome::GridWorld testGrid2 =
+        metronome::ConfigurationExecutor::extractDomain<metronome::GridWorld>(metronome::Configuration(json2),
+                resourceDir2);
 
 TEST_CASE("Traffic basic creation test", "[Traffic]") {
     //    metronome::Traffic traffic = testGrid;
@@ -60,16 +77,36 @@ TEST_CASE("Traffic basic creation test", "[Traffic]") {
     // REQUIRE(traffic.getStartState() == metronome::Traffic::State(6, 0));
     metronome::Configuration config;
     metronome::ExpansionTerminationChecker check;
+    metronome::TimeTerminationChecker checker;
+
     metronome::SZero<metronome::Traffic, metronome::ExpansionTerminationChecker> SZero(testGrid, config);
+
+    metronome::LssLrtaStar<metronome::GridWorld, metronome::TimeTerminationChecker> LssLrtaStar(testGrid2, config);
+
+    metronome::AStar<metronome::Traffic> aStar(testGrid, config);
+
+    std::vector<metronome::Traffic::Action> rete = aStar.plan(testGrid.getStartState());
+    LOG(INFO) << "Astar Solution: " << std::endl;
+    for (auto i : rete) {
+        LOG(INFO) << i.toString() << std::endl;
+    }
 
     std::vector<metronome::OnlinePlanner<metronome::Traffic, metronome::ExpansionTerminationChecker>::ActionBundle>
             ret = SZero.selectActions(testGrid.getStartState(), check);
-    LOG(INFO) << "Solution: " << std::endl;
-    for (auto i : ret) {
-        LOG(INFO) << i.action.toString() << std::endl;
-    }
+
+    std::vector<metronome::OnlinePlanner<metronome::GridWorld, metronome::TimeTerminationChecker>::ActionBundle> rett =
+            LssLrtaStar.selectActions(testGrid2.getStartState(), checker);
+
+//    LOG(INFO) << "S: " << ret.size() << " SZero Solution: " << std::endl;
+//    for (auto i : ret) {
+//        LOG(INFO) << i.action.toString() << std::endl;
+//    }
+//    LOG(INFO) << "S: " << rett.size() << " LssLrtaStar Solution: " << std::endl;
+//    for (auto i : rett) {
+//        LOG(INFO) << i.action.toString() << std::endl;
+//    }
 }
-//TEST_CASE("Traffic equals operator test", "[Traffic]") {
+// TEST_CASE("Traffic equals operator test", "[Traffic]") {
 //    metronome::Traffic::Obstacle o1{0, 1, 0, 0};
 //    metronome::Traffic::Obstacle o2{0, 2, 1, 1};
 //
@@ -105,48 +142,44 @@ TEST_CASE("Traffic basic creation test", "[Traffic]") {
 //    REQUIRE(ss == ss);
 //}
 
-//TEST_CASE("Traffic simulation", "[Traffic]") {
-//    metronome::Traffic traffic = testGrid;
-//
-//    std::vector<std::string> actions{"E",
-//            "E",
-//            "E",
-//            "E",
-//            "E",
-//            "E",
-//            "E",
-//            "E",
-//            "S",
-//            "S",
-//            "E",
-//            "E",
-//            "S",
-//            "S",
-//            "S",
-//            "S",
-//            "S",
-//            "S",
-//            "S",
-//            "S",
-//            "S",
-//            "S",
-//            "S",
-//            "E",
-//            "E",
-//            "E"};
-//
-//    metronome::Traffic::State currentState = testGrid.getStartState();
-//    for (auto action : actions) {
-//        testGrid.visualize(std::cout,
-//                currentState,
-//                metronome::Traffic::Action{metronome::Traffic::Action::toValue(action.c_str())});
-//
-//        boost::optional<metronome::Traffic::State> candidateState =
-//                testGrid.transition(currentState, metronome::Traffic::Action::toValue(action.c_str()));
-//
-//        if (candidateState.is_initialized()) {
-//            currentState = candidateState.get();
-//        }
-//    }
-//}
+TEST_CASE("Traffic simulation", "[Traffic]") {
+    metronome::Traffic traffic = testGrid;
+    const char* a[] = {"E", "E", "E", "E", "E", "S", "S", "S", "S"};
+    std::vector<std::string> actions{a, std::end(a)};
+    //            "S",
+    //            "E",
+    //            "E",
+    //            "S",
+    //            "S",
+    //            "S",
+    //            "S",
+    //            "S",
+    //            "S",
+    //            "S",
+    //            "S",
+    //            "S",
+    //            "S",
+    //            "S",
+    //            "E",
+    //            "E",
+    //            "E"};
+    //
+    metronome::Traffic::State currentState = testGrid.getStartState();
+    for (auto action : actions) {
+
+        boost::optional<metronome::Traffic::State> candidateState =
+                testGrid.transition(currentState, metronome::Traffic::Action::toValue(action.c_str()));
+        if (candidateState.is_initialized()) {
+            currentState = candidateState.get();
+        }
+        else {
+            throw std::runtime_error("boosted\n");
+        }
+         testGrid.visualize(std::cout,
+                currentState,
+                metronome::Traffic::Action{metronome::Traffic::Action::toValue(action.c_str())});
+
+
+    }
+}
 }
