@@ -1,10 +1,10 @@
 {
   "timeLimit": 150000000000,
-  "domainPath": "input/vacuum/dylan/cups.vw",
   "domainInstanceName": "Manual test instance",
+  "domainPath": "/input/vacuum/dylan/wall.vw",
   "actionDuration": 10,
   "domainName": "GRID_WORLD",
   "terminationType": "EXPANSION",
-  "algorithmName": "MO_RTS",
+  "algorithmName": "LSS_LRTA_STAR",
   "lookaheadType": "STATIC"
 }
