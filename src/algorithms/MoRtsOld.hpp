@@ -508,7 +508,7 @@ private:
         double endBeta = mu_beta + 2.0 * betaStandardDeviation;
 
         double start = std::min(startAlpha, startBeta);
-        double end = std::max(startAlpha, startBeta);
+        double end = std::max(endAlpha, endBeta);
 
         if (endAlpha < startBeta || (alphaStandardDeviation < 0.00001 && betaStandardDeviation < 0.00001)) {
             return 0;  // Not overlapping ranges or zero variance
