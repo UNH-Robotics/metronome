@@ -5,7 +5,9 @@ project(Metronome)
 # locating required libraries for addons, etc. Store them in modules/
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${PROJECT_SOURCE_DIR}/modules/")
 
-set(CMAKE_EXE_LINKER_FLAGS "-static")
+if (NOT APPLE)
+    set(CMAKE_EXE_LINKER_FLAGS "-static-libgcc -static-libstdc++")
+endif(NOT APPLE)
 
 #set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++14 -Wall -pedantic -Wextra")
 set(CXX clang++)

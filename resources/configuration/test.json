@@ -5,6 +5,6 @@
   "actionDuration": 10,
   "domainName": "GRID_WORLD",
   "terminationType": "EXPANSION",
-  "algorithmName": "LSS_LRTA_STAR",
+  "algorithmName": "MO_RTS",
   "lookaheadType": "STATIC"
 }
