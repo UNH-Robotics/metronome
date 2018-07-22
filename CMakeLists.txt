@@ -47,7 +47,7 @@ set(SOURCE_FILES
         src/experiment/termination/ExpansionTerminationChecker.hpp
         src/utils/Statistic.hpp src/MemoryConfiguration.hpp
         src/utils/StaticVector.hpp
-        src/algorithms/FRts.hpp src/utils/String.hpp)
+        src/algorithms/FRts.hpp src/utils/String.hpp src/algorithms/EnvelopeSearch.hpp dependencies/DynamicPriorityQueue.hpp)
 
 set(TEST_FILES
         test/test.cpp
@@ -61,15 +61,17 @@ set(TEST_FILES
 add_executable(Metronome ${SOURCE_FILES})
 add_executable(MetronomeTest ${TEST_FILES})
 
-find_package(Boost 1.55.0 COMPONENTS thread system REQUIRED)
+find_package(Boost 1.66.0 COMPONENTS thread system REQUIRED)
 find_package(Cairo)
 find_package(X11)
+find_package(Thrift REQUIRED)
 
 include_directories(
         ${Boost_INCLUDE_DIRS}
         ${Boost_LIBRARY_DIRS}
-        ${CAIRO_INCLUDE_DIRS}
+#        ${CAIRO_INCLUDE_DIRS}
         ${X11_INCLUDE_DIRS}
+        ${THRIFT_INCLUDE_DIR}
         dependencies
         src
 )
@@ -78,5 +80,6 @@ if (CAIRO_FOUND AND X11_FOUND)
 #    add_definitions(-DGRAPHICS)
 endif()
 
-target_link_libraries(Metronome ${Boost_LIBRARIES} ${CAIRO_LIBRARIES} ${X11_LIBRARIES})
-target_link_libraries(MetronomeTest ${Boost_LIBRARIES} ${CAIRO_LIBRARIES} ${X11_LIBRARIES})
+
+target_link_libraries(Metronome ${Boost_LIBRARIES} ${X11_LIBRARIES})
+target_link_libraries(MetronomeTest ${Boost_LIBRARIES} ${X11_LIBRARIES})

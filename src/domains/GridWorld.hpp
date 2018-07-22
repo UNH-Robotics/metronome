@@ -24,16 +24,16 @@ public:
     public:
         Action() : label{'~'} {};
 
-        static std::vector<Action>& getActions() {
-            static std::vector<Action> actions{
-                    Action('N'),
-                    Action('S'),
-                    Action('W'),
-                    Action('E'),
-                    Action('A'),
-                    Action('B'),
-                    Action('C'),
-                    Action('D'),
+        static const std::vector<Action>& getActions() {
+            static const std::vector<Action> actions{
+                Action('N'),
+                Action('S'),
+                Action('W'),
+                Action('E'),
+                Action('A'),
+                Action('B'),
+                Action('C'),
+                Action('D'),
             };
             return actions;
         }
@@ -48,7 +48,8 @@ public:
 
         std::string toString() const { return std::string{label}; }
 
-        friend std::ostream& operator<<(std::ostream& os, const Action& action) {
+        friend std::ostream&
+        operator<<(std::ostream& os, const Action& action) {
             os << action.label;
             return os;
         }
@@ -60,14 +61,21 @@ public:
 
     class State {
     public:
-        State() : x(0), y(0) {}
-        State(unsigned int x, unsigned int y) : x{x}, y{y} {}
+        State()
+            : x(0),
+              y(0) {}
+        State(unsigned int x, unsigned int y) : x{x},
+                                                y{y} {}
         /*Standard getters for the State(x,y)*/
         unsigned int getX() const { return x; }
         unsigned int getY() const { return y; }
         std::size_t hash() const { return x ^ y << 16 ^ y >> 16; }
-        bool operator==(const State& state) const { return x == state.x && y == state.y; }
-        bool operator!=(const State& state) const { return x != state.x || y != state.y; }
+        bool operator==(const State& state) const {
+            return x == state.x && y == state.y;
+        }
+        bool operator!=(const State& state) const {
+            return x != state.x || y != state.y;
+        }
         State& operator=(State toCopy) {
             swap(*this, toCopy);
             return *this;
@@ -77,7 +85,8 @@ public:
             return string + std::to_string(x) + " y: " + std::to_string(y);
         }
 
-        friend std::ostream& operator<<(std::ostream& stream, const GridWorld::State& state) {
+        friend std::ostream&
+        operator<<(std::ostream& stream, const GridWorld::State& state) {
             stream << "x: " << state.getX() << " y: " << state.getY();
             return stream;
         }
@@ -93,12 +102,16 @@ public:
             swap(first.y, second.y);
         }
     };
+
     /*Entry point for using this Domain*/
     GridWorld(const Configuration& configuration, std::istream& input)
-            : actionDuration{configuration.getLongOrThrow(ACTION_DURATION)},
-              octileMovement{configuration.hasMember(OCTILE_MOVEMENT) ? configuration.getBool(OCTILE_MOVEMENT) : false},
-              octileActionDuration{(const Cost)sqrt(2.0) * actionDuration} {
-        obstacles = std::unordered_set<State, typename metronome::Hasher<State>>{};
+        : actionDuration{configuration.getLongOrThrow(ACTION_DURATION)},
+          octileMovement{
+              configuration.hasMember(OCTILE_MOVEMENT) ? configuration
+                  .getBool(OCTILE_MOVEMENT) : false},
+          octileActionDuration{(const Cost) sqrt(2.0) * actionDuration} {
+        obstacles =
+            std::unordered_set<State, typename metronome::Hasher<State>>{};
         unsigned int currentHeight = 0;
         unsigned int currentWidth = 0;
         std::string line;
@@ -146,7 +159,8 @@ public:
                 ++currentWidth; // at the end of the character parse move along
             }
             if (currentWidth != width) {
-                throw MetronomeException("GridWorld is not complete. Width doesn't match input configuration.");
+                throw MetronomeException(
+                    "GridWorld is not complete. Width doesn't match input configuration.");
             }
 
             currentWidth = 0; // restart character parse at beginning of line
@@ -154,11 +168,14 @@ public:
         }
 
         if (currentHeight != height) {
-            throw MetronomeException("GridWorld is not complete. Height doesn't match input configuration.");
+            throw MetronomeException(
+                "GridWorld is not complete. Height doesn't match input configuration.");
         }
 
-        if (!tempStarState.is_initialized() || !tempGoalState.is_initialized()) {
-            throw MetronomeException("Traffic unknown start or goal location. Start or goal location is not defined.");
+        if (!tempStarState.is_initialized()
+            || !tempGoalState.is_initialized()) {
+            throw MetronomeException(
+                "Traffic unknown start or goal location. Start or goal location is not defined.");
         }
 
         startLocation = tempStarState.get();
@@ -170,7 +187,8 @@ public:
      *
      * @return the original state if the transition is not possible
      */
-    boost::optional<State> transition(const State& sourceState, const Action& action) const {
+    boost::optional<State>
+    transition(const State& sourceState, const Action& action) const {
         boost::optional<State> targetState;
 
         if (action.toChar() == 'N') {
@@ -194,22 +212,26 @@ public:
                 targetState = newState;
             }
         } else if (action.toChar() == 'A') {
-            State newState = State(sourceState.getX() + 1, sourceState.getY() + 1);
+            State newState =
+                State(sourceState.getX() + 1, sourceState.getY() + 1);
             if (isLegalLocation(newState)) {
                 targetState = newState;
             }
         } else if (action.toChar() == 'B') {
-            State newState = State(sourceState.getX() + 1, sourceState.getY() - 1);
+            State newState =
+                State(sourceState.getX() + 1, sourceState.getY() - 1);
             if (isLegalLocation(newState)) {
                 targetState = newState;
             }
         } else if (action.toChar() == 'C') {
-            State newState = State(sourceState.getX() - 1, sourceState.getY() - 1);
+            State newState =
+                State(sourceState.getX() - 1, sourceState.getY() - 1);
             if (isLegalLocation(newState)) {
                 targetState = newState;
             }
         } else if (action.toChar() == 'D') {
-            State newState = State(sourceState.getX() - 1, sourceState.getY() + 1);
+            State newState =
+                State(sourceState.getX() - 1, sourceState.getY() + 1);
             if (isLegalLocation(newState)) {
                 targetState = newState;
             }
@@ -219,16 +241,24 @@ public:
 
         return targetState;
     }
+
     /*Validating a goal state*/
     bool isGoal(const State& location) const {
-        return location.getX() == goalLocation.getX() && location.getY() == goalLocation.getY();
+        return location.getX() == goalLocation.getX()
+            && location.getY() == goalLocation.getY();
     }
+
     /*Validating an obstacle state*/
-    bool isObstacle(const State& location) const { return obstacles.find(location) != obstacles.end(); }
+    bool isObstacle(const State& location) const {
+        return obstacles.find(location) != obstacles.end();
+    }
+
     /*Validating the agent can visit the state*/
     bool isLegalLocation(const State& location) const {
-        return location.getX() < width && location.getY() < height && !isObstacle(location);
+        return location.getX() < width && location.getY() < height
+            && !isObstacle(location);
     }
+
     /*Standard getters for the (width,height) of the domain*/
     unsigned int getWidth() { return width; }
     unsigned int getHeight() { return height; }
@@ -241,58 +271,130 @@ public:
         return false;
     }
 
-    std::vector<State>::size_type getNumberObstacles() { return obstacles.size(); }
+    std::vector<State>::size_type getNumberObstacles() {
+        return obstacles.size();
+    }
 
     State getStartState() const { return startLocation; }
 
     bool isStart(const State& state) const {
-        return state.getX() == startLocation.getX() && state.getY() == startLocation.getY();
+        return state.getX() == startLocation.getX()
+            && state.getY() == startLocation.getY();
     }
 
     Cost distance(const State& state) const {
-        const int yDiff = goalLocation.getY() - state.getY();
-        unsigned int verticalDistance = std::max(yDiff, -yDiff); // FIXME
-        //                std::max(goalLocation.getY(), state.getY()) - std::min(goalLocation.getY(), state.getY());
-        const int xDiff = goalLocation.getX() - state.getX();
-        unsigned int horizontalDistance = std::max(xDiff, -xDiff);
-        //                std::max(goalLocation.getX(), state.getX()) - std::min(goalLocation.getX(), state.getX());
-        unsigned int totalDistance = verticalDistance + horizontalDistance;
-        Cost manhattanDistance = static_cast<Cost>(totalDistance);
-        return manhattanDistance;
+        return distance(state, goalLocation);
     }
 
-    Cost heuristic(const State& state) const { return distance(state) * actionDuration; }
+    Cost distance(const State& sourceState, const State& targetState) const {
+        const auto xDistance = std::abs(static_cast<int>(sourceState.getX()) -
+            static_cast<int>(targetState.getX()));
+        const auto yDistance = std::abs(static_cast<int>(sourceState.getY()) -
+            static_cast<int>(targetState.getY()));
+
+        const auto totalDistance = xDistance + yDistance;
+        return static_cast<Cost>(totalDistance);
+    }
+
+    Cost heuristic(const State& state) const {
+        return distance(state) * actionDuration;
+    }
+
+    Cost heuristic(const State& sourceState, const State& targetState) const {
+        return distance(sourceState, targetState) * actionDuration;
+    }
 
     bool safetyPredicate(const State& state) const { return true; }
 
-    std::vector<SuccessorBundle<GridWorld>> successors(const State& state) const {
+    std::vector<SuccessorBundle<GridWorld>>
+    successors(const State& state) const {
         std::vector<SuccessorBundle<GridWorld>> successors;
 
         auto iterator = directions.find(state);
         if (iterator != directions.end()) {
             const auto direction = iterator->second;
             if (direction == 'S') {
-                addValidSuccessor(successors, state, 0, 1, Action::getActions()[1], actionDuration); // South
+                addValidSuccessor(successors,
+                                  state,
+                                  0,
+                                  1,
+                                  Action::getActions()[1],
+                                  actionDuration); // South
             } else if (direction == 'N') {
-                addValidSuccessor(successors, state, 0, -1, Action::getActions()[0], actionDuration); // North
+                addValidSuccessor(successors,
+                                  state,
+                                  0,
+                                  -1,
+                                  Action::getActions()[0],
+                                  actionDuration); // North
             } else if (direction == 'W') {
-                addValidSuccessor(successors, state, -1, 0, Action::getActions()[2], actionDuration); // West
+                addValidSuccessor(successors,
+                                  state,
+                                  -1,
+                                  0,
+                                  Action::getActions()[2],
+                                  actionDuration); // West
             } else if (direction == 'E') {
-                addValidSuccessor(successors, state, 1, 0, Action::getActions()[3], actionDuration); // East
+                addValidSuccessor(successors,
+                                  state,
+                                  1,
+                                  0,
+                                  Action::getActions()[3],
+                                  actionDuration); // East
             }
             return successors;
         }
 
-        addValidSuccessor(successors, state, 0, 1, Action::getActions()[1], actionDuration); // South
-        addValidSuccessor(successors, state, 0, -1, Action::getActions()[0], actionDuration); // North
-        addValidSuccessor(successors, state, -1, 0, Action::getActions()[2], actionDuration); // West
-        addValidSuccessor(successors, state, 1, 0, Action::getActions()[3], actionDuration); // East
+        addValidSuccessor(successors,
+                          state,
+                          0,
+                          1,
+                          Action::getActions()[1],
+                          actionDuration); // South
+        addValidSuccessor(successors,
+                          state,
+                          0,
+                          -1,
+                          Action::getActions()[0],
+                          actionDuration); // North
+        addValidSuccessor(successors,
+                          state,
+                          -1,
+                          0,
+                          Action::getActions()[2],
+                          actionDuration); // West
+        addValidSuccessor(successors,
+                          state,
+                          1,
+                          0,
+                          Action::getActions()[3],
+                          actionDuration); // East
 
         if (octileMovement) {
-            addValidSuccessor(successors, state, 1, 1, Action::getActions()[4], octileActionDuration);
-            addValidSuccessor(successors, state, 1, -1, Action::getActions()[5], octileActionDuration);
-            addValidSuccessor(successors, state, -1, -1, Action::getActions()[6], octileActionDuration);
-            addValidSuccessor(successors, state, -1, 1, Action::getActions()[7], octileActionDuration);
+            addValidSuccessor(successors,
+                              state,
+                              1,
+                              1,
+                              Action::getActions()[4],
+                              octileActionDuration);
+            addValidSuccessor(successors,
+                              state,
+                              1,
+                              -1,
+                              Action::getActions()[5],
+                              octileActionDuration);
+            addValidSuccessor(successors,
+                              state,
+                              -1,
+                              -1,
+                              Action::getActions()[6],
+                              octileActionDuration);
+            addValidSuccessor(successors,
+                              state,
+                              -1,
+                              1,
+                              Action::getActions()[7],
+                              octileActionDuration);
         }
 
         return successors;
@@ -303,7 +405,8 @@ public:
             for (unsigned int j = 0; j < width; ++j) {
                 if (startLocation.getX() == j && startLocation.getY() == i) {
                     display << '@';
-                } else if (goalLocation.getX() == j && goalLocation.getY() == i) {
+                } else if (goalLocation.getX() == j
+                    && goalLocation.getY() == i) {
                     display << '*';
                 } else if (isObstacle(State(j, i))) {
                     display << '#';
@@ -320,19 +423,23 @@ public:
 
 private:
     void addValidSuccessor(std::vector<SuccessorBundle<GridWorld>>& successors,
-            const State& sourceState,
-            const signed char relativeX,
-            const signed char relativeY,
-            const Action& action,
-            const Cost cost) const {
-        const boost::optional<State>& successor = getSuccessor(sourceState, relativeX, relativeY);
+                           const State& sourceState,
+                           const signed char relativeX,
+                           const signed char relativeY,
+                           const Action& action,
+                           const Cost cost) const {
+        const boost::optional<State>
+            & successor = getSuccessor(sourceState, relativeX, relativeY);
         if (successor.is_initialized()) {
             successors.emplace_back(successor.get(), action, actionDuration);
         }
     }
 
-    boost::optional<State> getSuccessor(const State& sourceState, signed char relativeX, signed char relativeY) const {
-        State newState = State(sourceState.getX() + relativeX, sourceState.getY() + relativeY);
+    boost::optional<State> getSuccessor(const State& sourceState,
+                                        signed char relativeX,
+                                        signed char relativeY) const {
+        State newState = State(sourceState.getX() + relativeX,
+                               sourceState.getY() + relativeY);
         if (isLegalLocation(newState)) {
             return boost::make_optional(newState);
         }
@@ -354,7 +461,8 @@ private:
     unsigned int width;
     unsigned int height;
     std::unordered_set<State, typename metronome::Hasher<State>> obstacles;
-    std::unordered_map<State, char, typename metronome::Hasher<State>> directions;
+    std::unordered_map<State, char, typename metronome::Hasher<State>>
+        directions;
     State startLocation{};
     State goalLocation{};
     const Cost actionDuration;

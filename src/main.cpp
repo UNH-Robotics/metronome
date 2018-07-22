@@ -12,6 +12,10 @@
 #include <cstdio>
 #include <utils/Statistic.hpp>
 
+#include <thrift/protocol/TBinaryProtocol.h>
+#include <thrift/transport/TSocket.h>
+#include <thrift/transport/TTransportUtils.h>
+
 #ifdef GRAPHICS
 #include <X11/Xlib.h>
 #include <cairo/cairo-xlib.h>
@@ -50,9 +54,12 @@ cairo_surface_t* cairo_create_x11_surface(int x, int y) {
 }
 #endif
 
+void thriftTest();
+
 int main(int argc, char** argv) {
     using namespace metronome;
     printSplashScreen();
+    thriftTest();
 
 #ifdef GRAPHICS
     cairo_create_x11_surface(800,800);
@@ -115,16 +122,65 @@ int main(int argc, char** argv) {
     return 0;
 }
 
+void thriftTest() {
+    using namespace apache::thrift;
+    using namespace apache::thrift::protocol;
+    using namespace apache::thrift::transport;
+
+    stdcxx::shared_ptr<TTransport> socket(new TSocket("localhost", 9090));
+    stdcxx::shared_ptr<TTransport> transport(new TBufferedTransport(socket));
+    stdcxx::shared_ptr<TProtocol> protocol(new TBinaryProtocol(transport));
+// try {
+//    transport->open();
+//
+//    client.ping();
+//    cout << "ping()" << endl;
+//
+//    cout << "1 + 1 = " << client.add(1, 1) << endl;
+//
+//    Work work;
+//    work.op = Operation::DIVIDE;
+//    work.num1 = 1;
+//    work.num2 = 0;
+//
+//    try {
+//      client.calculate(1, work);
+//      cout << "Whoa? We can divide by zero!" << endl;
+//    } catch (InvalidOperation& io) {
+//      cout << "InvalidOperation: " << io.why << endl;
+       or using generated operator<<: cout << io << endl;
+       or by using std::exception native method what(): cout << io.what() << endl;
+//    }
+//
+//    work.op = Operation::SUBTRACT;
+//    work.num1 = 15;
+//    work.num2 = 10;
+//    int32_t diff = client.calculate(1, work);
+//    cout << "15 - 10 = " << diff << endl;
+//
+     Note that C++ uses return by reference for complex types to avoid
+     costly copy construction
+//    SharedStruct ss;
+//    client.getStruct(ss, 1);
+//    cout << "Received log: " << ss << endl;
+//
+//    transport->close();
+//  } catch (TException& tx) {
+//    cout << "ERROR: " << tx.what() << endl;
+//  }   
+}
+
+
 void printSplashScreen() {
     std::cout << std::endl;
-    std::cout << " ___            ___     " << std::endl;
-    std::cout << "|###\\  ______  /###|   " << std::endl;
-    std::cout << "|#|\\#\\ \\    / /#/|#|   " << std::endl;
-    std::cout << "|#| \\#\\ \\  / /#/ |#|   " << std::endl;
-    std::cout << "|#|  \\#\\ \\/ /#/  |#|   " << std::endl;
-    std::cout << "|#|      /\\      |#|   " << std::endl;
-    std::cout << "|#|     /  \\     |#|   " << std::endl;
-    std::cout << "|#|    /____\\    |#|   " << std::endl;
+    std::cout << R"( ___            ___    )" << std::endl;
+    std::cout << R"(|###\  ______  /###|   )" << std::endl;
+    std::cout << R"(|#|\#\ \    / /#/|#|   )" << std::endl;
+    std::cout << R"(|#| \#\ \  / /#/ |#|   )" << std::endl;
+    std::cout << R"(|#|  \#\ \/ /#/  |#|   )" << std::endl;
+    std::cout << R"(|#|      /\      |#|   )" << std::endl;
+    std::cout << R"(|#|     /  \     |#|   )" << std::endl;
+    std::cout << R"(|#|    /____\    |#|   )" << std::endl;
     std::cout << "---- Metronome  ----" << std::endl;
     std::cout << " When time matters!" << std::endl << std::endl;
 }

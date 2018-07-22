@@ -6,6 +6,10 @@
 #include <string>
 #include <vector>
 
+/**
+ * @author Bence Cserna 
+ */
+
 namespace metronome {
 
 template <typename T>

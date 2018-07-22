@@ -7,30 +7,34 @@ namespace metronome {
 
 template <typename T, std::size_t N>
 class StaticVector {
-    // properly aligned uninitialized storage for N T's
-    typename std::aligned_storage<sizeof(T), alignof(T)>::type data[N];
+    using Storage = typename std::aligned_storage<sizeof(T), alignof(T)>::type;
+
+    Storage* storage = new Storage[N];
     std::size_t size = 0;
 
 public:
-    // Create an object in aligned storage
     template <typename... Args>
     T* construct(Args&&... args) {
         if (size >= N) // possible error handling
-            throw std::bad_alloc{};
-        T* const t = new (data + size) T(std::forward<Args>(args)...);
+            throw std::overflow_error("ObjectPool reached its maximum capacity: " + std::to_string(N));
+
+        auto* t = new (storage + size) T(std::forward<Args>(args)...);
         ++size;
 
         return t;
     }
 
     // Access an object in aligned storage
-    const T& operator[](std::size_t pos) const { return *reinterpret_cast<const T*>(data + pos); }
+    const T& operator[](const std::size_t pos) const { return 
+            *reinterpret_cast<const T*>(storage + pos); }
 
     // Delete objects from aligned storage
     ~StaticVector() {
         for (std::size_t pos = 0; pos < size; ++pos) {
-            reinterpret_cast<const T*>(data + pos)->~T();
+            reinterpret_cast<const T*>(storage + pos)->~T();
         }
+        
+        delete[] storage;
     }
 };
 }

@@ -13,11 +13,19 @@ public:
         expansionCount = 0;
     }
 
-    void setRatio(double) {
-        throw MetronomeException("Function not implemented");
+    TimeTerminationChecker& limit(double limit) {
+        assert(limit > 0 && limit <= 1);
+        this->limitRatio = limit;
+        
+        return *this;
     }
 
-    bool reachedTermination() const { return getEllapsedTime() >= timeLimit; };
+    bool reachedTermination() const {
+        const auto ellapsedNanos = getEllapsedTime().count();
+        const auto limitedRemainingNanos = timeLimit.count() * limitRatio;
+        
+        return ellapsedNanos >= limitedRemainingNanos;
+    }
 
     void notifyExpansion() { ++expansionCount; }
 
@@ -36,6 +44,7 @@ private:
     std::chrono::time_point<std::chrono::high_resolution_clock, std::chrono::nanoseconds> startTime;
     std::chrono::nanoseconds timeLimit{0};
     unsigned int expansionCount{0};
+    double limitRatio{1};
 };
 }
 
